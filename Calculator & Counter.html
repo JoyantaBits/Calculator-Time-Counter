@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, maximum-scale=1.5">
+  <title>Calculator & Timer · JavaScript Task</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(145deg, #1a1e2b 0%, #2a3140 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+      padding: 1.5rem;
+      margin: 0;
+    }
+
+    .dashboard {
+      max-width: 950px;
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    /* shared card style */
+    .card {
+      background: rgba(255, 255, 255, 0.07);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-radius: 2.5rem;
+      box-shadow: 0 25px 45px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+      padding: 1.8rem 1.5rem 2rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #f0f3fa;
+      transition: all 0.2s ease;
+    }
+
+    .calculator-card {
+      flex: 1 1 340px;
+      min-width: 300px;
+    }
+
+    .timer-card {
+      flex: 1 1 340px;
+      min-width: 300px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    h2 {
+      font-weight: 500;
+      font-size: 1.8rem;
+      letter-spacing: 1px;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      padding-bottom: 0.7rem;
+    }
+
+    h2 span {
+      background: #3e4b5f;
+      padding: 0.2rem 0.6rem;
+      border-radius: 2rem;
+      font-size: 0.9rem;
+      font-weight: 400;
+      margin-left: 0.5rem;
+      color: #cfdbf5;
+    }
+
+    /* CALCULATOR DISPLAY */
+    .calc-display {
+      background: #0b0e14;
+      border-radius: 1.8rem;
+      padding: 0.9rem 1.2rem;
+      margin-bottom: 1.5rem;
+      box-shadow: inset 0 6px 12px rgba(0,0,0,0.6), 0 4px 8px rgba(0,0,0,0.4);
+      text-align: right;
+      min-height: 5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      word-break: break-word;
+    }
+
+    .calc-expression {
+      font-size: 1rem;
+      color: #96a3b6;
+      min-height: 1.5rem;
+      letter-spacing: 0.5px;
+    }
+
+    .calc-result {
+      font-size: 2.6rem;
+      font-weight: 500;
+      color: #ffffff;
+      line-height: 1.2;
+    }
+
+    /* GRID BUTTONS */
+    .buttons-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.8rem;
+    }
+
+    .btn {
+      background: rgba(220, 225, 240, 0.08);
+      border: none;
+      border-radius: 1.4rem;
+      padding: 1rem 0.3rem;
+      font-size: 1.4rem;
+      font-weight: 500;
+      color: #eef3ff;
+      backdrop-filter: blur(8px);
+      background: rgba(30, 35, 50, 0.7);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255,255,255,0.2);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .btn:hover {
+      background: rgba(70, 85, 115, 0.7);
+      transform: scale(0.96);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+    }
+
+    .btn:active {
+      transform: scale(0.9);
+      background: rgba(100, 120, 160, 0.8);
+    }
+
+    .btn.operator {
+      background: rgba(255, 166, 48, 0.2);
+      color: #ffb74d;
+      border-color: rgba(255, 180, 70, 0.4);
+      font-weight: 600;
+    }
+
+    .btn.equal {
+      background: #f6851b;
+      color: #0a0c12;
+      font-weight: bold;
+      box-shadow: 0 0 20px #f6851b80;
+      border-color: #ffaa33;
+      grid-column: span 1;
+    }
+
+    .btn.clear {
+      background: rgba(235, 80, 80, 0.25);
+      color: #ff8a8a;
+      border-color: rgba(255, 110, 110, 0.4);
+    }
+
+    .btn.zero {
+      grid-column: span 2;
+    }
+
+    /* TIMER SECTION */
+    .timer-display {
+      background: #0b0e14;
+      border-radius: 2.5rem;
+      padding: 1.2rem 1rem;
+      margin: 0.5rem 0 1.5rem;
+      text-align: center;
+      box-shadow: inset 0 8px 16px rgba(0,0,0,0.7);
+      font-size: 3.8rem;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 4px;
+      color: #d4e0ff;
+      background: #0e121c;
+      word-break: break-word;
+    }
+
+    .timer-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+      justify-content: center;
+      margin: 1.2rem 0 1rem;
+    }
+
+    .timer-btn {
+      background: rgba(45, 55, 75, 0.8);
+      border: none;
+      border-radius: 3rem;
+      padding: 0.9rem 1.4rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #e0e8ff;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 10px 18px rgba(0, 0, 0, 0.5);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      transition: 0.2s;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      flex: 1 1 auto;
+      justify-content: center;
+    }
+
+    .timer-btn:hover {
+      background: #3f4b63;
+      transform: translateY(-2px);
+    }
+
+    .timer-btn:active {
+      transform: translateY(2px);
+    }
+
+    .start-btn {
+      background: #2f6b4a;
+      color: white;
+      border-color: #66bb6a;
+    }
+
+    .stop-btn {
+      background: #9e4a4a;
+      border-color: #ef5350;
+    }
+
+    .reset-btn {
+      background: #4a5568;
+    }
+
+    .timer-input-area {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      margin-top: 0.8rem;
+      flex-wrap: wrap;
+    }
+
+    .timer-input {
+      background: #1e2432;
+      border: 1px solid #4a5568;
+      border-radius: 2rem;
+      padding: 0.7rem 1rem;
+      color: white;
+      font-size: 1rem;
+      width: 80px;
+      text-align: center;
+      outline: none;
+    }
+
+    .set-timer-btn {
+      background: #3b4b66;
+      border: none;
+      border-radius: 2rem;
+      padding: 0.7rem 1.2rem;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      margin-left: 0.2rem;
+    }
+
+    .note {
+      font-size: 0.8rem;
+      color: #a0b3d9;
+      margin-top: 0.7rem;
+    }
+
+    @media (max-width: 700px) {
+      .dashboard {
+        gap: 1.5rem;
+      }
+      .timer-display {
+        font-size: 2.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <!-- CALCULATOR CARD -->
+    <div class="card calculator-card">
+      <h2>
+        📟 Calculator
+        <span>basic</span>
+      </h2>
+      <div class="calc-display">
+        <div class="calc-expression" id="calcExpression"></div>
+        <div class="calc-result" id="calcResult">0</div>
+      </div>
+      <div class="buttons-grid">
+        <button class="btn clear" id="clearBtn">AC</button>
+        <button class="btn operator" id="backspaceBtn">⌫</button>
+        <button class="btn operator" id="percentBtn">%</button>
+        <button class="btn operator" id="divideBtn">÷</button>
+
+        <button class="btn" id="sevenBtn">7</button>
+        <button class="btn" id="eightBtn">8</button>
+        <button class="btn" id="nineBtn">9</button>
+        <button class="btn operator" id="multiplyBtn">×</button>
+
+        <button class="btn" id="fourBtn">4</button>
+        <button class="btn" id="fiveBtn">5</button>
+        <button class="btn" id="sixBtn">6</button>
+        <button class="btn operator" id="subtractBtn">−</button>
+
+        <button class="btn" id="oneBtn">1</button>
+        <button class="btn" id="twoBtn">2</button>
+        <button class="btn" id="threeBtn">3</button>
+        <button class="btn operator" id="addBtn">+</button>
+
+        <button class="btn zero" id="zeroBtn">0</button>
+        <button class="btn" id="decimalBtn">.</button>
+        <button class="btn equal" id="equalsBtn">=</button>
+      </div>
+    </div>
+
+    <!-- TIMER COUNTER CARD -->
+    <div class="card timer-card">
+      <h2>
+        ⏱️ Timer Counter
+        <span>mm:ss</span>
+      </h2>
+      <div class="timer-display" id="timerDisplay">00:00</div>
+      <div class="timer-controls">
+        <button class="timer-btn start-btn" id="startTimerBtn">▶ Start</button>
+        <button class="timer-btn stop-btn" id="stopTimerBtn">⏹️ Stop</button>
+        <button class="timer-btn reset-btn" id="resetTimerBtn">↺ Reset</button>
+      </div>
+      <div class="timer-input-area">
+        <input type="number" id="minutesInput" class="timer-input" placeholder="Min" min="0" value="0">
+        <span style="color:#ccc; font-weight:bold;">:</span>
+        <input type="number" id="secondsInput" class="timer-input" placeholder="Sec" min="0" max="59" value="0">
+        <button class="set-timer-btn" id="setTimerBtn">Set</button>
+      </div>
+      <div class="note">
+        ⏲️ Counts down. Set minutes & seconds, then press Start.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      // ---------- CALCULATOR LOGIC ----------
+      const calcExpressionEl = document.getElementById('calcExpression');
+      const calcResultEl = document.getElementById('calcResult');
+
+      // State
+      let currentOperand = '0';
+      let previousOperand = '';
+      let operation = null;
+      let shouldResetScreen = false;
+
+      function updateDisplay() {
+        calcResultEl.textContent = currentOperand;
+        if (operation !== null && previousOperand !== '') {
+          let symbol = operation;
+          if (operation === '×') symbol = '×';
+          else if (operation === '÷') symbol = '÷';
+          else if (operation === '+') symbol = '+';
+          else if (operation === '−') symbol = '−';
+          calcExpressionEl.textContent = `${previousOperand} ${symbol}`;
+        } else {
+          calcExpressionEl.textContent = '';
+        }
+      }
+
+      function clearCalculator() {
+        currentOperand = '0';
+        previousOperand = '';
+        operation = null;
+        shouldResetScreen = false;
+        updateDisplay();
+      }
+
+      function appendNumber(number) {
+        if (currentOperand === '0' || shouldResetScreen) {
+          currentOperand = number;
+          shouldResetScreen = false;
+        } else {
+          currentOperand += number;
+        }
+        updateDisplay();
+      }
+
+      function appendDecimal() {
+        if (shouldResetScreen) {
+          currentOperand = '0';
+          shouldResetScreen = false;
+        }
+        if (!currentOperand.includes('.')) {
+          currentOperand += '.';
+        }
+        updateDisplay();
+      }
+
+      function chooseOperation(op) {
+        if (operation !== null && !shouldResetScreen) {
+          compute();
+        }
+        previousOperand = currentOperand;
+        operation = op;
+        shouldResetScreen = true;
+        updateDisplay();
+      }
+
+      function compute() {
+        const prev = parseFloat(previousOperand);
+        const current = parseFloat(currentOperand);
+        if (isNaN(prev) || isNaN(current)) return;
+        let computation;
+        switch (operation) {
+          case '+':
+            computation = prev + current;
+            break;
+          case '−':
+            computation = prev - current;
+            break;
+          case '×':
+            computation = prev * current;
+            break;
+          case '÷':
+            computation = current === 0 ? 'Error' : prev / current;
+            break;
+          case '%':
+            computation = prev % current;
+            break;
+          default:
+            return;
+        }
+        if (computation === 'Error') {
+          currentOperand = 'Error';
+          operation = null;
+          previousOperand = '';
+          shouldResetScreen = true;
+          updateDisplay();
+          return;
+        }
+        currentOperand = String(computation);
+        // trim long decimals
+        if (currentOperand.includes('.') && currentOperand.length > 12) {
+          currentOperand = Number(computation).toFixed(8).replace(/\.?0+$/, '');
+        }
+        operation = null;
+        previousOperand = '';
+        shouldResetScreen = true;
+        updateDisplay();
+      }
+
+      function backspace() {
+        if (shouldResetScreen) return;
+        if (currentOperand.length === 1 || (currentOperand.length === 2 && currentOperand.startsWith('-'))) {
+          currentOperand = '0';
+        } else {
+          currentOperand = currentOperand.slice(0, -1);
+        }
+        updateDisplay();
+      }
+
+      function handlePercent() {
+        if (currentOperand === 'Error') return;
+        const num = parseFloat(currentOperand);
+        if (isNaN(num)) return;
+        currentOperand = String(num / 100);
+        shouldResetScreen = true;
+        updateDisplay();
+      }
+
+      // Attach calculator events
+      document.getElementById('clearBtn').addEventListener('click', clearCalculator);
+      document.getElementById('backspaceBtn').addEventListener('click', backspace);
+      document.getElementById('percentBtn').addEventListener('click', handlePercent);
+      document.getElementById('divideBtn').addEventListener('click', () => chooseOperation('÷'));
+      document.getElementById('multiplyBtn').addEventListener('click', () => chooseOperation('×'));
+      document.getElementById('subtractBtn').addEventListener('click', () => chooseOperation('−'));
+      document.getElementById('addBtn').addEventListener('click', () => chooseOperation('+'));
+      document.getElementById('equalsBtn').addEventListener('click', compute);
+
+      document.getElementById('zeroBtn').addEventListener('click', () => appendNumber('0'));
+      document.getElementById('oneBtn').addEventListener('click', () => appendNumber('1'));
+      document.getElementById('twoBtn').addEventListener('click', () => appendNumber('2'));
+      document.getElementById('threeBtn').addEventListener('click', () => appendNumber('3'));
+      document.getElementById('fourBtn').addEventListener('click', () => appendNumber('4'));
+      document.getElementById('fiveBtn').addEventListener('click', () => appendNumber('5'));
+      document.getElementById('sixBtn').addEventListener('click', () => appendNumber('6'));
+      document.getElementById('sevenBtn').addEventListener('click', () => appendNumber('7'));
+      document.getElementById('eightBtn').addEventListener('click', () => appendNumber('8'));
+      document.getElementById('nineBtn').addEventListener('click', () => appendNumber('9'));
+      document.getElementById('decimalBtn').addEventListener('click', appendDecimal);
+
+      // Keyboard support for calculator (optional but helpful)
+      window.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT') return; // avoid interfering with timer inputs
+        const key = e.key;
+        if (key >= '0' && key <= '9') {
+          e.preventDefault();
+          appendNumber(key);
+        } else if (key === '.') {
+          e.preventDefault();
+          appendDecimal();
+        } else if (key === '+' || key === '-') {
+          e.preventDefault();
+          if (key === '+') chooseOperation('+');
+          if (key === '-') chooseOperation('−');
+        } else if (key === '*') {
+          e.preventDefault();
+          chooseOperation('×');
+        } else if (key === '/') {
+          e.preventDefault();
+          chooseOperation('÷');
+        } else if (key === 'Enter' || key === '=') {
+          e.preventDefault();
+          compute();
+        } else if (key === 'Backspace') {
+          e.preventDefault();
+          backspace();
+        } else if (key === 'Escape') {
+          e.preventDefault();
+          clearCalculator();
+        } else if (key === '%') {
+          e.preventDefault();
+          handlePercent();
+        }
+      });
+
+      // ---------- TIMER COUNTER LOGIC ----------
+      const timerDisplayEl = document.getElementById('timerDisplay');
+      const minutesInput = document.getElementById('minutesInput');
+      const secondsInput = document.getElementById('secondsInput');
+
+      let timerInterval = null;
+      let totalSeconds = 0;       // current countdown value in seconds
+      let isRunning = false;
+
+      function formatTime(sec) {
+        if (sec < 0) sec = 0;
+        const mins = Math.floor(sec / 60);
+        const remainingSecs = Math.floor(sec % 60);
+        return `${String(mins).padStart(2, '0')}:${String(remainingSecs).padStart(2, '0')}`;
+      }
+
+      function updateTimerDisplay() {
+        timerDisplayEl.textContent = formatTime(totalSeconds);
+      }
+
+      function stopTimer(resetRunningFlag = true) {
+        if (timerInterval) {
+          clearInterval(timerInterval);
+          timerInterval = null;
+        }
+        if (resetRunningFlag) {
+          isRunning = false;
+        }
+      }
+
+      function startTimer() {
+        if (isRunning) return;
+        if (totalSeconds <= 0) {
+          // If timer reached 0, optionally alert or just ignore
+          alert('⏰ Set a time greater than 0 to start the timer.');
+          return;
+        }
+        stopTimer(true); // clear any existing interval
+        isRunning = true;
+        timerInterval = setInterval(() => {
+          if (totalSeconds > 0) {
+            totalSeconds--;
+            updateTimerDisplay();
+            if (totalSeconds === 0) {
+              stopTimer(true);
+              updateTimerDisplay();
+              // Optional subtle alert
+              // alert('Timer finished!');
+            }
+          } else {
+            stopTimer(true);
+            updateTimerDisplay();
+          }
+        }, 1000);
+      }
+
+      function resetTimer() {
+        stopTimer(true);
+        // Reset to last set values? Better keep current set? We'll read inputs or keep 0.
+        // Use current input values as reset reference.
+        const mins = parseInt(minutesInput.value, 10) || 0;
+        const secs = parseInt(secondsInput.value, 10) || 0;
+        totalSeconds = mins * 60 + secs;
+        if (totalSeconds < 0) totalSeconds = 0;
+        updateTimerDisplay();
+        isRunning = false;
+      }
+
+      function setTimerFromInputs() {
+        stopTimer(true);
+        let mins = parseInt(minutesInput.value, 10);
+        let secs = parseInt(secondsInput.value, 10);
+        if (isNaN(mins)) mins = 0;
+        if (isNaN(secs)) secs = 0;
+        if (mins < 0) mins = 0;
+        if (secs < 0) secs = 0;
+        if (secs > 59) secs = 59; // clamp seconds
+        totalSeconds = mins * 60 + secs;
+        // update inputs to reflect clamped values
+        minutesInput.value = mins;
+        secondsInput.value = secs;
+        updateTimerDisplay();
+      }
+
+      // Event listeners for timer
+      document.getElementById('startTimerBtn').addEventListener('click', startTimer);
+      document.getElementById('stopTimerBtn').addEventListener('click', () => {
+        stopTimer(true);
+        updateTimerDisplay();
+      });
+      document.getElementById('resetTimerBtn').addEventListener('click', resetTimer);
+      document.getElementById('setTimerBtn').addEventListener('click', setTimerFromInputs);
+
+      // Also allow pressing Enter in inputs to set timer
+      minutesInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') setTimerFromInputs();
+      });
+      secondsInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') setTimerFromInputs();
+      });
+
+      // Initialize timer display with default inputs (0:00)
+      setTimerFromInputs();
+      // Initialize calculator
+      updateDisplay();
+    })();
+  </script>
+</body>
+</html>
